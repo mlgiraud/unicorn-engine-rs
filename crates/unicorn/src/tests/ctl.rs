@@ -105,6 +105,26 @@ fn test_uc_ctl_tb_cache() {
     assert!(evicted > cached);
 }
 
+#[test]
+fn test_block_icount_hook() {
+    let code = b"\x90\x0f\x05";
+    let mut uc = Unicorn::new_with_data(Arch::X86, Mode::MODE_64, 0u64).unwrap();
+    uc.mem_map(CODE_START, CODE_LEN, Prot::ALL).unwrap();
+    uc.mem_write(CODE_START, code).unwrap();
+    uc.add_insn_sys_hook(X86Insn::SYSCALL, 1, 0, |uc| {
+        uc.emu_stop().unwrap();
+    })
+    .unwrap();
+    uc.add_block_icount_hook(1, 0, |uc, _, instruction_count| {
+        *uc.get_data_mut() += u64::from(instruction_count);
+    })
+    .unwrap();
+
+    uc.emu_start(CODE_START, 0, 0, 0).unwrap();
+
+    assert_eq!(*uc.get_data(), 2);
+}
+
 #[cfg(feature = "arch_arm")]
 #[test]
 fn test_uc_ctl_change_page_size() {
