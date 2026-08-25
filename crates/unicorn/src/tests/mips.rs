@@ -44,6 +44,22 @@ fn test_mips_el_ori() {
 }
 
 #[test]
+fn test_mips_maximum_tb_temp_capacity() {
+    // This instruction stream reaches the maximum translation-block length and
+    // exercises the MIPS translator's peak temporary-register allocation.
+    let code = [0x90; 16];
+    let uc = uc_common_setup(
+        Arch::MIPS,
+        Mode::MIPS32 | Mode::LITTLE_ENDIAN,
+        None,
+        &code,
+        (),
+    );
+
+    uc.ctl_request_cache(CODE_START, None).unwrap();
+}
+
+#[test]
 fn test_mips_eb_ori() {
     let code = [
         0x34, 0x21, 0x34, 0x56, // ori $at, $at, 0x3456;
