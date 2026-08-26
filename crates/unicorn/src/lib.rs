@@ -1567,4 +1567,19 @@ impl<'a, D> Unicorn<'a, D> {
         }
         .into()
     }
+
+    /// Selects the fast virtual TLB-fill path.
+    ///
+    /// Fast TLB-fill callbacks must not read registers because Unicorn does not
+    /// synchronize the current translation-block state before it invokes them.
+    pub fn ctl_set_tlb_fill_fast(&mut self, enabled: bool) -> Result<(), uc_error> {
+        unsafe {
+            uc_ctl(
+                self.get_handle(),
+                UC_CTL_WRITE!(ControlType::TLB_FILL_FAST),
+                i32::from(enabled),
+            )
+        }
+        .into()
+    }
 }
